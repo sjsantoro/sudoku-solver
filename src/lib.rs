@@ -125,7 +125,7 @@ pub fn generate_puzzle() -> Vec<Vec<char>> {
             }
 
             loop {
-                board[row][col] = rng.gen_range(48, 58) as u8 as char;
+                board[row][col] = rng.gen_range(49, 58) as u8 as char;
 
                 // Ensure puzzle is valid.
                 match validate_puzzle(&board) {
