@@ -1,40 +1,60 @@
 //!
 #![warn(missing_debug_implementations, rust_2018_idioms, missing_docs)]
 
+use rand::{thread_rng, Rng};
+
 #[derive(Debug)]
 struct EmptyCell {
   row: usize,
   col: usize,
 }
 
-fn get_subcell_root(col: usize, row: usize) -> (usize, usize) {
-  (col / 3 * 3, row / 3 * 3)
+fn get_subcell_root(row: usize, col: usize) -> (usize, usize) {
+  (row / 3 * 3, col / 3 * 3)
 }
 
 fn valid_position(num: char, sub_cell_x: usize, sub_cell_y: usize, row: usize, col: usize, board: &Vec<Vec<char>>) -> bool {
-  for row in sub_cell_y..sub_cell_y+3 {
-      for col in sub_cell_x..sub_cell_x+3 {
-          if board[row][col] == num {
+    for y in sub_cell_y..sub_cell_y+3 {
+        for x in sub_cell_x..sub_cell_x+3 {
+
+            // Do not check itself.
+            if x == row && y == col {
+              continue;
+            }
+
+            if board[x][y] == num {
+                return false;
+            }
+        }
+    }
+    
+    // Check if number is in the row
+    for x in 0..9 {
+
+          // Do not check itself.
+          if x == row {
+            continue;
+          }
+
+          if num == board[x][col] {
               return false;
           }
-      }
-  }
-  
-  // Check if number is in the row
-  for row in 0..9 {
-      if num == board[row][col] {
-          return false;
-      }
-  }
-  
-  // Check if number is in the col
-  for col in 0..9 {
-      if num == board[row][col] {
-          return false;
-      }
-  }
-  
-  true
+    }
+
+    // Check if number is in the col
+    for y in 0..9 {
+
+          // Do not check itself.
+          if y == col {
+            continue;
+          }
+
+          if num == board[row][y] {
+              return false;
+          }
+    }
+    
+    true
 }
 
 fn calculate_value(idx: usize, cells: &Vec<EmptyCell>, board: &mut Vec<Vec<char>>) -> bool {
@@ -42,8 +62,8 @@ fn calculate_value(idx: usize, cells: &Vec<EmptyCell>, board: &mut Vec<Vec<char>
   let next = idx + 1;
   
   // Calculate sub-cell origins
-  let sub_cell_x = cell.col / 3 * 3;
-  let sub_cell_y = cell.row / 3 * 3;
+  let sub_cell_x = cell.row / 3 * 3;
+  let sub_cell_y = cell.col / 3 * 3;
   
   let mut cur: u8 = '1' as u8;
   
@@ -76,6 +96,47 @@ fn calculate_value(idx: usize, cells: &Vec<EmptyCell>, board: &mut Vec<Vec<char>
       }
   }
   true
+}
+
+/// Generates a puzzle
+///
+pub fn generate_puzzle() -> Vec<Vec<char>> {
+    
+    // Create an empty board
+    let mut board = vec![vec!['.'; 9]; 9];
+
+    println!("{:?}", board);
+
+    let mut rng = thread_rng();
+
+    // Random board numbers to generate
+    let numbers_to_generate: i32 = rng.gen_range(12, 20);
+
+    // Loop through numbers and randomly choose x and y values for each.
+    'outer: for _ in 0..numbers_to_generate {
+        loop {
+            let row = rng.gen_range(0, 9);
+            let col = rng.gen_range(0, 9);
+
+            // Ensure that the value in the board is empty.
+            if board[row][col] != '.' {
+                // Go back to top and pick another value.
+                continue;
+            }
+
+            loop {
+                board[row][col] = rng.gen_range(48, 58) as u8 as char;
+
+                // Ensure puzzle is valid.
+                match validate_puzzle(&board) {
+                    Err(_) => continue,
+                    _ => continue 'outer,
+                }
+            }
+        }
+    }
+
+    board
 }
 
 /// Solves a sudoku puzzle.
@@ -114,7 +175,7 @@ pub fn validate_puzzle(board: &Vec<Vec<char>>) -> Result<(), (usize, usize)> {
   for row in 0..board.len() {
       for col in 0..board[row].len() {
           let c = board[row][col];
-          let (root_x, root_y) = get_subcell_root(col, row);
+          let (root_x, root_y) = get_subcell_root(row, col);
           
           if c != '.' {
             if !valid_position(c, root_x, root_y, row, col, &*board) {
@@ -125,6 +186,19 @@ pub fn validate_puzzle(board: &Vec<Vec<char>>) -> Result<(), (usize, usize)> {
   }
 
   Ok(())
+}
+
+fn print_puzzle(board: &Vec<Vec<char>>) {
+    for row in board {
+        print!("\n------------------\n|");
+
+        for col in row {
+            print!("{}|", col);
+        }
+
+        print!("\n------------------\n");
+    }
+
 }
 
 #[cfg(test)]
@@ -160,5 +234,19 @@ mod tests {
         solve_puzzle(&mut input);
 
         assert_eq!(input, result);
+    }
+
+    #[test]
+    fn test_generator() {
+        let mut puzzle = generate_puzzle();
+
+        print_puzzle(&puzzle);
+
+        // Ensure we can solve the puzzle
+        solve_puzzle(&mut puzzle);
+
+        print_puzzle(&puzzle);
+
+        assert_eq!(true, true);
     }
 }
