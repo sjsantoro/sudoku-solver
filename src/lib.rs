@@ -105,8 +105,6 @@ pub fn generate_puzzle() -> Vec<Vec<char>> {
     // Create an empty board
     let mut board = vec![vec!['.'; 9]; 9];
 
-    println!("{:?}", board);
-
     let mut rng = thread_rng();
 
     // Random board numbers to generate
