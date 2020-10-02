@@ -243,8 +243,6 @@ mod tests {
         // Ensure we can solve the puzzle
         solve_puzzle(&mut puzzle);
 
-        print_puzzle(&puzzle);
-
         assert_eq!(true, true);
     }
 }
