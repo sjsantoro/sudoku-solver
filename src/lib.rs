@@ -100,7 +100,13 @@ fn calculate_value(idx: usize, cells: &Vec<EmptyCell>, board: &mut Vec<Vec<char>
 
 /// Generates a puzzle
 ///
-pub fn generate_puzzle() -> Vec<Vec<char>> {
+/// # Arguments
+///
+/// * `min` - Minimum numbers in the generated puzzle.
+/// * `max` - Maximum amount of numbers in the generated puzzle.
+///
+/// * Returns a 2D char vector containing the cell numbers as chars. Empty cells are denoted with a `.`.
+pub fn generate_puzzle(min: u32, max: u32) -> Vec<Vec<char>> {
     
     // Create an empty board
     let mut board = vec![vec!['.'; 9]; 9];
@@ -108,7 +114,7 @@ pub fn generate_puzzle() -> Vec<Vec<char>> {
     let mut rng = thread_rng();
 
     // Random board numbers to generate
-    let numbers_to_generate: i32 = rng.gen_range(12, 20);
+    let numbers_to_generate: u32 = rng.gen_range(min, max);
 
     // Loop through numbers and randomly choose x and y values for each.
     'outer: for _ in 0..numbers_to_generate {
@@ -236,13 +242,8 @@ mod tests {
 
     #[test]
     fn test_generator() {
-        let mut puzzle = generate_puzzle();
+        let puzzle = generate_puzzle(20, 30);
 
-        print_puzzle(&puzzle);
-
-        // Ensure we can solve the puzzle
-        solve_puzzle(&mut puzzle);
-
-        assert_eq!(true, true);
+        assert_eq!(validate_puzzle(&puzzle), Ok(()));
     }
 }
